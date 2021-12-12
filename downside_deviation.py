@@ -10,10 +10,10 @@ import altair as alt
 import pickle
 plt.rcParams["figure.figsize"] = [12, 8]
 plt.rcParams["figure.dpi"] = 120
-plt.style.use('ggplot')
+plt.style.use('fivethirtyeight')
 
 
-st.set_page_config(page_title='WHO COVID statistics',
+st.set_page_config(page_title='Downside deviation',
                    page_icon='./lincoln_indy.ico', layout='wide', initial_sidebar_state='auto')
 
 with open('./df.pickle', 'rb') as f:
@@ -48,6 +48,7 @@ with col2:
         y='Return'
     ).properties(
         width=800, height=500)
+    alt.Axis(titleFontSize=36)
 
     bar2 = alt.Chart(df).mark_bar(opacity=0.6, size=30,
                                   color='purple').encode(
@@ -72,3 +73,16 @@ with col2:
     chart = bar1+bar2+line_target+line_up+line_down
 
     st.altair_chart(chart)
+    # import seaborn as sns
+
+    fig,ax=plt.subplots(figsize=(10,5),dpi=200)
+    # sns.distplot(df['Return'],bins=9, color='green', hist_kws={"linewidth": 3,
+    #                         "alpha": 1, "color": "lightblue"})
+    plt.hist(df['Return'],bins=9,rwidth=.45, color='lightblue')
+    plt.axvline(x=target,color='orange')
+    plt.axvline(x=target +
+                       upside_deviation,color='green')
+    plt.axvline(x=target-downside_deviation,color='red')
+
+    st.pyplot(fig)
+
