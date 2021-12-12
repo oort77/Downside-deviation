@@ -6,6 +6,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import altair as alt
 import pickle
 plt.rcParams["figure.figsize"] = [12, 8]
 plt.rcParams["figure.dpi"] = 120
@@ -25,12 +26,12 @@ col1, col2 = st.columns([3, 5])
 
 with col1:
     st.subheader("Data: ")
-    st.markdown('<hr></hr>',unsafe_allow_html=True)
+    st.markdown('<hr></hr>', unsafe_allow_html=True)
+    df['Year'] = df['Year'].apply(lambda x: int(x))
     df['Return-Target'] = df['Return'] - target
-    df['Diffs'] = target*(df['Return-Target']<0)
+    df['Diffs'] = target*(df['Return-Target'] < 0)
     # df.set_index('Year', drop=True, inplace=True)
-    st.dataframe(df[['Year','Return','Return-Target']])
-    # st.image("https://static.streamlit.io/examples/cat.jpg")
+    st.dataframe(df[['Year', 'Return', 'Return-Target']])
     downside_deviation = np.sqrt(
         ((df.loc[df['Return-Target'] < 0, 'Return-Target'])**2).sum()/df.shape[0])
     upside_deviation = np.sqrt(
@@ -41,24 +42,33 @@ with col1:
 
 
 with col2:
-    st.subheader("Plot")
 
-    
-    fig, ax = plt.subplots(figsize=(11, 8))  # ,dpi=1000
-    df.plot.bar(x='Year',y='Return', color='b', ax=ax)
-    plt.annotate(f'Target: {target:.2f}', (-0.35, target+2))
-    plt.annotate(f'Up dev: {upside_deviation:.2f}',
-                 (-0.35, target+upside_deviation+2))
-    plt.annotate(f'Down dev: {downside_deviation:.2f}',
-                 (-0.35, target-downside_deviation-2))
-    plt.axhline(y=target, xmin=-10, xmax=100, color='r', label='Target')
-    plt.axhline(y=0, xmin=-10, xmax=100,  color='b')
-    plt.axhline(y=target - downside_deviation, xmin=-10, xmax=100, color='k')
-    plt.axhline(y=target + upside_deviation, xmin=-10, xmax=100, color='g')
-    # for x_neg in df.loc[df['Return-Target'] < 0]:
-    #     plt.axvline(x = x_neg, ymin =df.loc[x_neg,'Return'],ymax=df.loc[x_neg, target]) 
-    df.plot.bar(x='Year', y='Diffs', color='purple', alpha=0.6, ax=ax)
-    plt.legend()
-    st.pyplot(fig)
+    bar1 = alt.Chart(df, title="Returns, target and upside/downside deviations").mark_bar(size=30).encode(
+        x='Year:O',
+        y='Return'
+    ).properties(
+        width=800, height=500)
 
-    # st.image("https://static.streamlit.io/examples/dog.jpg")
+    bar2 = alt.Chart(df).mark_bar(opacity=0.6, size=30,
+                                  color='purple').encode(
+        alt.X('Year:O'),
+        alt.Y('Diffs', title="Returns")
+    ).properties(
+        width=800, height=500)
+
+    lines = pd.DataFrame(
+        columns=['target', 'upside_deviation', 'downside_deviation'])
+    lines.loc[0, :] = [target, target +
+                       upside_deviation, target-downside_deviation]
+
+    line_target = alt.Chart(lines).mark_rule(color='orange', size=3).encode(
+        alt.Y('target:Q'))
+
+    line_up = alt.Chart(lines).mark_rule(color='green', size=2).encode(
+        alt.Y('upside_deviation:Q'))
+    line_down = alt.Chart(lines).mark_rule(color='red', size=2).encode(
+        alt.Y('downside_deviation:Q'))
+
+    chart = bar1+bar2+line_target+line_up+line_down
+
+    st.altair_chart(chart)
