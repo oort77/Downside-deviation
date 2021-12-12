@@ -10,7 +10,7 @@ import altair as alt
 import pickle
 plt.rcParams["figure.figsize"] = [12, 8]
 plt.rcParams["figure.dpi"] = 120
-plt.style.use('fivethirtyeight')
+plt.style.use('fast')
 
 
 st.set_page_config(page_title='Downside deviation',
@@ -73,12 +73,12 @@ with col2:
     chart = bar1+bar2+line_target+line_up+line_down
 
     st.altair_chart(chart)
-    # import seaborn as sns
+    import seaborn as sns
 
-    fig,ax=plt.subplots(figsize=(10,5),dpi=200)
-    # sns.distplot(df['Return'],bins=9, color='green', hist_kws={"linewidth": 3,
-    #                         "alpha": 1, "color": "lightblue"})
-    plt.hist(df['Return'],bins=9,rwidth=.45, color='lightblue')
+    fig,ax=plt.subplots(figsize=(18,9)) #,dpi=150
+    sns.distplot(df['Return'],bins=9, color='green', hist_kws={"linewidth": 3,
+                            "alpha": 1, "color": "lightblue"})
+    # plt.hist(df['Return'],bins=9, rwidth=.45, color='lightblue')
     plt.axvline(x=target,color='orange')
     plt.axvline(x=target +
                        upside_deviation,color='green')
